@@ -85,8 +85,8 @@
     </div>
 
     <script>
-        // 정답 단어 설정 (스무고개처럼 제가 생각한 단어)
-        const answerWord = "사과";
+        // 제가 생각한 단어 설정 (스무고개처럼 사용자가 맞추는 단어)
+        const answerWord = "사과";  // 예시 단어
         let questionCount = 0;
 
         // 질문을 받으면 대답을 하는 함수
@@ -101,15 +101,20 @@
                 return;
             }
 
-            if (userQuestion.includes("사과")) {
-                questionElement.textContent = "그 단어는 맞습니다!";
-                messageElement.textContent = "축하합니다! 맞췄습니다.";
-                messageElement.style.color = "green";
-                return;
+            // 질문에 대한 답을 "예" 또는 "아니오"로 대답
+            if (userQuestion.includes("사과") || userQuestion.includes("과일")) {
+                messageElement.textContent = "예";
             } else {
-                questionCount++;
+                messageElement.textContent = "아니오";
+            }
+
+            questionCount++;
+
+            // 20번 이상 질문 시 게임 종료
+            if (questionCount < 20) {
                 questionElement.textContent = `질문 ${questionCount + 1}: 예/아니오로 대답해주세요.`;
-                messageElement.textContent = "다시 한 번 질문을 해주세요!";
+            } else {
+                questionElement.textContent = `게임 종료! 정답은 '사과'였습니다.`;
             }
         }
     </script>
