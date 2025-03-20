@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>낱말 맞추기 게임</title>
+    <title>스무고개 게임</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,7 +20,7 @@
             border-radius: 10px;
             background-color: white;
             box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
-            width: 350px;
+            width: 400px;
         }
         h1 {
             font-size: 2rem;
@@ -57,41 +57,59 @@
             font-size: 1.2rem;
             color: #ff5733;
         }
+        .question {
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
 
     <div class="game-container">
-        <h1>낱말 맞추기 게임</h1>
+        <h1>스무고개 게임</h1>
         
         <!-- 게임 설명서 -->
         <div class="instructions">
             <h2>게임 설명</h2>
-            <p>이 게임은 간단한 낱말 맞추기 게임입니다. 화면에 제시된 단어의 철자를 맞추는 것이 목표입니다.</p>
-            <p>정답을 맞추면 "정답입니다!" 메시지가 나타나고, 틀린 경우 "틀렸습니다. 다시 시도해보세요!"라는 메시지가 뜹니다.</p>
-            <p>게임을 시작하려면 아래 텍스트 상자에 단어를 입력하고 "확인" 버튼을 눌러 보세요!</p>
+            <p>이 게임은 "스무고개"처럼 진행됩니다. 제가 생각한 단어에 대해 "예" 또는 "아니오"로 질문을 통해 맞춰보세요.</p>
+            <p>최대 20번의 질문 기회가 주어집니다. 제시된 질문에 대해 예/아니오로 대답하세요!</p>
         </div>
 
-        <!-- 사용자 입력 및 게임 -->
-        <input type="text" id="userInput" placeholder="여기에 단어를 입력하세요">
-        <br>
-        <button onclick="checkWord()">확인</button>
-        <p class="message" id="message"></p>
+        <div id="game">
+            <p class="question">질문을 시작하세요!</p>
+            <input type="text" id="userQuestion" placeholder="예/아니오 질문을 입력하세요">
+            <br>
+            <button onclick="askQuestion()">질문하기</button>
+            <p class="message" id="message"></p>
+        </div>
     </div>
 
     <script>
-        const correctWord = "사과"; // 정답 단어
+        // 정답 단어 설정 (스무고개처럼 제가 생각한 단어)
+        const answerWord = "사과";
+        let questionCount = 0;
 
-        function checkWord() {
-            const userInput = document.getElementById("userInput").value;
+        // 질문을 받으면 대답을 하는 함수
+        function askQuestion() {
+            const userQuestion = document.getElementById("userQuestion").value.toLowerCase();
             const messageElement = document.getElementById("message");
+            const questionElement = document.querySelector(".question");
 
-            if (userInput === correctWord) {
-                messageElement.textContent = "정답입니다!";
-                messageElement.style.color = "green";
-            } else {
-                messageElement.textContent = "틀렸습니다. 다시 시도해보세요!";
+            if (questionCount >= 20) {
+                messageElement.textContent = "20번의 질문 기회가 모두 끝났습니다. 정답은 '사과'였습니다!";
                 messageElement.style.color = "red";
+                return;
+            }
+
+            if (userQuestion.includes("사과")) {
+                questionElement.textContent = "그 단어는 맞습니다!";
+                messageElement.textContent = "축하합니다! 맞췄습니다.";
+                messageElement.style.color = "green";
+                return;
+            } else {
+                questionCount++;
+                questionElement.textContent = `질문 ${questionCount + 1}: 예/아니오로 대답해주세요.`;
+                messageElement.textContent = "다시 한 번 질문을 해주세요!";
             }
         }
     </script>
