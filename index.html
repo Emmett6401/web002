@@ -3,121 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스무고개 게임 Ver 0.01</title>
+    <title>MBTI Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-        .game-container {
             text-align: center;
-            padding: 30px;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
             border-radius: 10px;
-            background-color: white;
-            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
-            width: 400px;
-        }
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
-        .instructions {
-            text-align: left;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            color: #555;
-        }
-        input[type="text"] {
-            padding: 10px;
-            font-size: 1rem;
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            width: 80%;
-            margin-bottom: 15px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 1rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .message {
-            margin-top: 20px;
-            font-size: 1.2rem;
-            color: #ff5733;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         .question {
-            margin-top: 20px;
-            font-size: 1.2rem;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+        }
+        .button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-
-    <div class="game-container">
-        <h1>스무고개 게임 0.01</h1>
-        
-        <!-- 게임 설명서 -->
-        <div class="instructions">
-            <h2>게임 설명</h2>
-            <p>이 게임은 "스무고개"처럼 진행됩니다. 제가 생각한 단어에 대해 "예" 또는 "아니오"로 질문을 통해 맞춰보세요.</p>
-            <p>최대 20번의 질문 기회가 주어집니다. 제시된 질문에 대해 예/아니오로 대답하세요!</p>
-        </div>
-
-        <div id="game">
-            <p class="question">질문을 시작하세요!</p>
-            <input type="text" id="userQuestion" placeholder="예/아니오 질문을 입력하세요">
-            <br>
-            <button onclick="askQuestion()">질문하기</button>
-            <p class="message" id="message"></p>
-        </div>
+    <div class="container">
+        <div id="question" class="question"></div>
+        <button id="optionA" class="button"></button>
+        <button id="optionB" class="button"></button>
     </div>
 
     <script>
-        // 제가 생각한 단어 설정 (스무고개처럼 사용자가 맞추는 단어)
-        const answerWord = "사과";  // 예시 단어
-        let questionCount = 0;
+        const questions = [
+            ["당신은 주로 어디에 집중하나요?", "아이디어", "사실"],
+            ["당신은 결정을 내릴 때 무엇을 더 중시하나요?", "감정", "논리"],
+            ["당신은 에너지를 얻는 방법은?", "사람들과 어울리기", "혼자만의 시간"],
+            ["당신은 어떤 방식을 선호하나요?", "계획 세우기", "즉흥적으로 하기"],
+            ["당신은 무엇을 더 신뢰하나요?", "직관", "감각"],
+            ["당신은 어떤 성향이 더 강한가요?", "실용적", "상상력 풍부"],
+            ["당신은 무엇을 더 중요하게 생각하나요?", "조화", "진실"],
+            ["당신은 어떤 것에 더 편안함을 느끼나요?", "세부사항", "큰 그림"],
+            ["당신은 어떤 성격인가요?", "조직적", "유연함"],
+            ["당신은 무엇을 더 선호하나요?", "구조화된 환경", "자유로운 환경"]
+        ];
 
-        // 질문을 받으면 대답을 하는 함수
-        function askQuestion() {
-            const userQuestion = document.getElementById("userQuestion").value.toLowerCase();
-            const messageElement = document.getElementById("message");
-            const questionElement = document.querySelector(".question");
+        const traits = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+        let currentQuestion = 0;
+        const answers = [];
 
-            if (questionCount >= 20) {
-                messageElement.textContent = "20번의 질문 기회가 모두 끝났습니다. 정답은 '사과'였습니다!";
-                messageElement.style.color = "red";
-                return;
-            }
+        const questionElement = document.getElementById("question");
+        const optionAButton = document.getElementById("optionA");
+        const optionBButton = document.getElementById("optionB");
 
-            // 질문에 대한 답을 "예" 또는 "아니오"로 대답
-            if (userQuestion.includes("사과") || userQuestion.includes("과일")) {
-                messageElement.textContent = "예";
+        function showQuestion() {
+            if (currentQuestion < questions.length) {
+                const [question, optionA, optionB] = questions[currentQuestion];
+                questionElement.textContent = question;
+                optionAButton.textContent = optionA;
+                optionBButton.textContent = optionB;
             } else {
-                messageElement.textContent = "아니오";
-            }
-
-            questionCount++;
-
-            // 20번 이상 질문 시 게임 종료
-            if (questionCount < 20) {
-                questionElement.textContent = `질문 ${questionCount + 1}: 예/아니오로 대답해주세요.`;
-            } else {
-                questionElement.textContent = `게임 종료! 정답은 '사과'였습니다.`;
+                calculateResult();
             }
         }
-    </script>
 
+        function recordAnswer(answer) {
+            answers.push(answer);
+            currentQuestion++;
+            showQuestion();
+        }
+
+        function calculateResult() {
+            answers.forEach((answer, i) => {
+                if (i === 0 || i === 2) traits[answer === "A" ? "E" : "I"]++;
+                if (i === 1 || i === 6) traits[answer === "A" ? "F" : "T"]++;
+                if (i === 4 || i === 5) traits[answer === "A" ? "N" : "S"]++;
+                if (i === 3 || i === 8 || i === 9) traits[answer === "A" ? "J" : "P"]++;
+            });
+
+            const mbti = 
+                (traits.E >= traits.I ? "E" : "I") +
+                (traits.S >= traits.N ? "S" : "N") +
+                (traits.T >= traits.F ? "T" : "F") +
+                (traits.J >= traits.P ? "J" : "P");
+
+            alert(`당신의 MBTI 유형은: ${mbti}`);
+        }
+
+        optionAButton.addEventListener("click", () => recordAnswer("A"));
+        optionBButton.addEventListener("click", () => recordAnswer("B"));
+
+        showQuestion();
+    </script>
 </body>
 </html>
