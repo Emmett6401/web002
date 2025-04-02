@@ -1,112 +1,59 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MBTI Test</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
+<div>Teachable Machine Image Model</div>
+<button type="button" onclick="init()">Start</button>
+<div id="webcam-container"></div>
+<div id="label-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+<script type="text/javascript">
+    // More API functions here:
+    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+    // the link to your model provided by Teachable Machine export panel
+    const URL = "https://teachablemachine.withgoogle.com/models/7uXeopHKg/";
+
+    let model, webcam, labelContainer, maxPredictions;
+
+    // Load the image model and setup the webcam
+    async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        // load the model and metadata
+        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+        // or files from your local hard drive
+        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+
+        // Convenience function to setup a webcam
+        const flip = true; // whether to flip the webcam
+        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+        await webcam.setup(); // request access to the webcam
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+
+        // append elements to the DOM
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < maxPredictions; i++) { // and class labels
+            labelContainer.appendChild(document.createElement("div"));
         }
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    async function loop() {
+        webcam.update(); // update the webcam frame
+        await predict();
+        window.requestAnimationFrame(loop);
+    }
+
+    // run the webcam image through the image model
+    async function predict() {
+        // predict can take in an image, video or canvas html element
+        const prediction = await model.predict(webcam.canvas);
+        for (let i = 0; i < maxPredictions; i++) {
+            const classPrediction =
+                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction;
         }
-        .question {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        .button {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div id="question" class="question"></div>
-        <button id="optionA" class="button"></button>
-        <button id="optionB" class="button"></button>
-    </div>
-
-    <script>
-        const questions = [
-            ["당신은 주로 어디에 집중하나요?", "아이디어", "사실"],
-            ["당신은 결정을 내릴 때 무엇을 더 중시하나요?", "감정", "논리"],
-            ["당신은 에너지를 얻는 방법은?", "사람들과 어울리기", "혼자만의 시간"],
-            ["당신은 어떤 방식을 선호하나요?", "계획 세우기", "즉흥적으로 하기"],
-            ["당신은 무엇을 더 신뢰하나요?", "직관", "감각"],
-            ["당신은 어떤 성향이 더 강한가요?", "실용적", "상상력 풍부"],
-            ["당신은 무엇을 더 중요하게 생각하나요?", "조화", "진실"],
-            ["당신은 어떤 것에 더 편안함을 느끼나요?", "세부사항", "큰 그림"],
-            ["당신은 어떤 성격인가요?", "조직적", "유연함"],
-            ["당신은 무엇을 더 선호하나요?", "구조화된 환경", "자유로운 환경"]
-        ];
-
-        const traits = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
-        let currentQuestion = 0;
-        const answers = [];
-
-        const questionElement = document.getElementById("question");
-        const optionAButton = document.getElementById("optionA");
-        const optionBButton = document.getElementById("optionB");
-
-        function showQuestion() {
-            if (currentQuestion < questions.length) {
-                const [question, optionA, optionB] = questions[currentQuestion];
-                questionElement.textContent = question;
-                optionAButton.textContent = optionA;
-                optionBButton.textContent = optionB;
-            } else {
-                calculateResult();
-            }
-        }
-
-        function recordAnswer(answer) {
-            answers.push(answer);
-            currentQuestion++;
-            showQuestion();
-        }
-
-        function calculateResult() {
-            answers.forEach((answer, i) => {
-                if (i === 0 || i === 2) traits[answer === "A" ? "E" : "I"]++;
-                if (i === 1 || i === 6) traits[answer === "A" ? "F" : "T"]++;
-                if (i === 4 || i === 5) traits[answer === "A" ? "N" : "S"]++;
-                if (i === 3 || i === 8 || i === 9) traits[answer === "A" ? "J" : "P"]++;
-            });
-
-            const mbti = 
-                (traits.E >= traits.I ? "E" : "I") +
-                (traits.S >= traits.N ? "S" : "N") +
-                (traits.T >= traits.F ? "T" : "F") +
-                (traits.J >= traits.P ? "J" : "P");
-
-            alert(`당신의 MBTI 유형은: ${mbti}`);
-        }
-
-        optionAButton.addEventListener("click", () => recordAnswer("A"));
-        optionBButton.addEventListener("click", () => recordAnswer("B"));
-
-        showQuestion();
-    </script>
-</body>
-</html>
+    }
+</script>
